@@ -29,7 +29,7 @@ zbx_template_windows_updates.yaml # Template Zabbix 7.0 LTS (import)
 
 ## Requisitos
 
-- Zabbix Server / Frontend **7.0 LTS**
+- Zabbix Server / Frontend **7.x LTS**
 - Zabbix Agent (1 ou 2) com `vfs.file.contents` habilitado (padrão)
 - Windows com PowerShell 5.1+ (usa a API COM nativa `Microsoft.Update.Session`
   — não requer módulo `PSWindowsUpdate`)
@@ -51,7 +51,7 @@ Register-ScheduledTask -TaskName 'Zabbix-WinUpdatesCheck' -Action $action `
   -Trigger $trigger -Principal $principal -Description 'Gera status.json para o Zabbix'
 ```
 
-Teste manual:
+Teste manual para ver se funciona:
 
 ```powershell
 Start-ScheduledTask -TaskName 'Zabbix-WinUpdatesCheck'
@@ -61,7 +61,7 @@ Get-Content C:\ProgramData\ZabbixWinUpdates\status.json
 ### 2. Template no Zabbix
 
 `Data collection → Templates → Import` → selecione
-`zbx_template_windows_updates.yaml` → vincule ao host Windows desejado.
+`zbx_template_windows_updates.yaml` → vincule ao host Windows desejado que já tenha zabbix agent instalado.
 
 ## Itens coletados
 
@@ -118,9 +118,7 @@ gera falsos positivos persistentes sem relação com patch de segurança.
   isso existe o contador `unclassified_count`.
 - O item mestre atualiza a cada 1h (`delay`), mas o dado real só muda
   quando a Tarefa Agendada roda (padrão diário).
-- Testado apenas via API COM `Microsoft.Update.Session` — ambientes com
-  WSUS configurado via GPO (`UseWUServer=1`) mas sem rota até o servidor
-  WSUS vão reportar `error` preenchido no JSON.
+- Testado apenas via API COM Microsoft.Update.Session contra o Windows Update público. Comportamento não validado na prática em ambientes com WSUS configurado via GPO (UseWUServer=1): a expectativa é que a API respeite a política (ela usa o mesmo Windows Update Agent) e, se o servidor WSUS estiver inacessível, o Search() falhe e o campo error do JSON venha preenchido — mas isso ainda não foi confirmado em host real. Se o seu ambiente usa WSUS, valide antes de confiar no alerta de winupdates.script_error como sinal de "sem rota ao WSUS".
 
 ## Licença
 
