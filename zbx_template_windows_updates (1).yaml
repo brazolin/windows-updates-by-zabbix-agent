@@ -1,0 +1,273 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 9888416d1a034f2f9179cd547a78d51e
+      name: 'Templates/Operating systems'
+  templates:
+    - uuid: 29e8f404e2b54991b91edfd4b362343a
+      template: 'Windows Updates by Zabbix agent'
+      name: 'Windows Updates by Zabbix agent (file-based)'
+      description: |
+        Monitora atualizacoes pendentes do Windows lendo um arquivo JSON gerado
+        por tarefa agendada (check_windows_updates.ps1). Nao requer system.run
+        nem AllowKey=system.run[*] no zabbix_agentd.conf - usa apenas
+        vfs.file.contents, que ja e uma chave padrao do agente.
+
+        Pre-requisitos no host Windows:
+          - check_windows_updates.ps1 rodando via Tarefa Agendada (conta SYSTEM)
+          - Saida em C:\ProgramData\ZabbixWinUpdates\status.json
+      groups:
+        - name: 'Templates/Operating systems'
+      items:
+        - uuid: 6e053abebbb24c64bbd210b6880d3d66
+          name: 'Windows updates: raw status file'
+          key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          delay: 1h
+          value_type: TEXT
+          tags:
+            - tag: component
+              value: updates
+        - uuid: bd4637d77d1b4ce5bbc17665bbb2fc9e
+          name: 'Windows updates: critical pending'
+          type: DEPENDENT
+          key: winupdates.critical.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.critical_count'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: b00ce5942e9e4489aa6df28dbc267c5e
+          name: 'Windows updates: important pending'
+          type: DEPENDENT
+          key: winupdates.important.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.important_count'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: f50025b75adf498e9ad98df610e7de8f
+          name: 'Windows updates: moderate pending'
+          type: DEPENDENT
+          key: winupdates.moderate.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.moderate_count'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: c1801175656a4a91b740741770540284
+          name: 'Windows updates: low pending'
+          type: DEPENDENT
+          key: winupdates.low.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.low_count'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: 338d148b29ea4329b04e661226d443bc
+          name: 'Windows updates: unclassified pending'
+          type: DEPENDENT
+          key: winupdates.unclassified.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.unclassified_count'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: 67f69a7df9e5463c9e959e5af23d3168
+          name: 'Windows updates: total pending'
+          type: DEPENDENT
+          key: winupdates.total.count
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.total_pending'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: a4c0a2bc7487434485745e146edb132f
+          name: 'Windows updates: reboot pending'
+          type: DEPENDENT
+          key: winupdates.reboot.pending
+          delay: '0'
+          value_type: UNSIGNED
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.reboot_pending'
+          valuemap:
+            name: 'Windows updates: boolean status'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: 64dc7be9ade54b929694be79f11e7c72
+          name: 'Windows updates: last install date'
+          type: DEPENDENT
+          key: winupdates.last_install
+          delay: '0'
+          value_type: TEXT
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.last_install_date'
+          tags:
+            - tag: component
+              value: updates
+        - uuid: 37d3e0426b03475fa9482bf657542b16
+          name: 'Windows updates: script error message'
+          type: DEPENDENT
+          key: winupdates.script_error
+          delay: '0'
+          value_type: TEXT
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.error'
+              error_handler: CUSTOM_VALUE
+              error_handler_params: ''
+          tags:
+            - tag: component
+              value: updates
+        - uuid: d6dedce19fce4eed9ea2b104ca51c657
+          name: 'Windows updates: last report timestamp'
+          type: DEPENDENT
+          key: winupdates.timestamp
+          delay: '0'
+          value_type: TEXT
+          master_item:
+            key: 'vfs.file.contents["C:\ProgramData\ZabbixWinUpdates\status.json"]'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.timestamp'
+          tags:
+            - tag: component
+              value: updates
+      macros:
+        - macro: '{$WINUPDATES.CRITICAL.MIN}'
+          value: '1'
+          description: 'Numero minimo de updates criticos pendentes para disparar alerta.'
+        - macro: '{$WINUPDATES.IMPORTANT.MIN}'
+          value: '1'
+          description: 'Numero minimo de updates importantes pendentes para disparar alerta.'
+        - macro: '{$WINUPDATES.STALE.TIME}'
+          value: 2d
+          description: 'Tempo sem atualizacao do status.json antes de considerar dado obsoleto.'
+      valuemaps:
+        - uuid: c992962e90f54d74a3523e0f8d220c6c
+          name: 'Windows updates: boolean status'
+          mappings:
+            - value: '0'
+              newvalue: 'No'
+            - value: '1'
+              newvalue: 'Yes'
+  triggers:
+    - uuid: 242f9981d3b6419bab3d12d524015ff1
+      expression: 'last(/Windows Updates by Zabbix agent/winupdates.critical.count)>={$WINUPDATES.CRITICAL.MIN}'
+      name: 'Windows: {HOST.NAME} has critical updates pending'
+      priority: HIGH
+      description: 'Existem atualizacoes criticas pendentes de instalacao neste host.'
+      tags:
+        - tag: scope
+          value: security
+    - uuid: fe537b6b7ed341dabfd6436a064fecca
+      expression: 'last(/Windows Updates by Zabbix agent/winupdates.important.count)>={$WINUPDATES.IMPORTANT.MIN}'
+      name: 'Windows: {HOST.NAME} has important updates pending'
+      priority: WARNING
+      description: 'Existem atualizacoes importantes pendentes de instalacao neste host.'
+      tags:
+        - tag: scope
+          value: security
+    - uuid: fc8564cdfd824e5f933bc90e4fa3d39f
+      expression: 'last(/Windows Updates by Zabbix agent/winupdates.reboot.pending)=1'
+      name: 'Windows: {HOST.NAME} has a pending reboot'
+      priority: WARNING
+      description: 'Ha um reboot pendente para concluir a instalacao de atualizacoes.'
+      tags:
+        - tag: scope
+          value: availability
+    - uuid: 9bc6de8c1c384837a337a9fdcbf369ac
+      expression: 'nodata(/Windows Updates by Zabbix agent/winupdates.timestamp,{$WINUPDATES.STALE.TIME})=1'
+      name: 'Windows: {HOST.NAME} update status is stale or script stopped reporting'
+      priority: AVERAGE
+      description: |
+        O arquivo status.json nao foi atualizado dentro do prazo esperado.
+        Provavel causa: tarefa agendada parada, script com erro, ou host offline.
+      tags:
+        - tag: scope
+          value: availability
+    - uuid: 5dfa79f14ac4498d869d2a6ffabef7dd
+      expression: 'last(/Windows Updates by Zabbix agent/winupdates.script_error)<>"null" and length(last(/Windows Updates by Zabbix agent/winupdates.script_error))>0'
+      name: 'Windows: {HOST.NAME} update check script reported an error'
+      priority: WARNING
+      description: 'O script check_windows_updates.ps1 registrou um erro no campo "error" do JSON.'
+      tags:
+        - tag: scope
+          value: availability
+  graphs:
+    - uuid: 08fd8f5bd08b45e399436d71a754c9ed
+      name: 'Windows: Pending updates by severity'
+      type: STACKED
+      graph_items:
+        - color: E03333
+          item:
+            host: 'Windows Updates by Zabbix agent'
+            key: winupdates.critical.count
+        - sortorder: '1'
+          color: F1902D
+          item:
+            host: 'Windows Updates by Zabbix agent'
+            key: winupdates.important.count
+        - sortorder: '2'
+          color: F6C243
+          item:
+            host: 'Windows Updates by Zabbix agent'
+            key: winupdates.moderate.count
+        - sortorder: '3'
+          color: 68A9E0
+          item:
+            host: 'Windows Updates by Zabbix agent'
+            key: winupdates.low.count
+        - sortorder: '4'
+          color: A0A0A0
+          item:
+            host: 'Windows Updates by Zabbix agent'
+            key: winupdates.unclassified.count
